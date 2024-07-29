@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "stdbool.h": "c",
+        "equations.h": "c",
+        "pthread.h": "c",
+        "raylib.h": "c",
+        "semaphore.h": "c",
+        "time.h": "c",
+        "util_functions.h": "c",
+        "collision.h": "c",
+        "stdio.h": "c",
+        "types.h": "c",
+        "configs.h": "c",
+        "object_manager.h": "c",
+        "assert.h": "c",
+        "typeinfo": "c",
+        "string.h": "c",
+        "unistd.h": "c"
+    }
+}
