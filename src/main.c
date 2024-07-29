@@ -18,9 +18,9 @@ void create_default_objects(registry_t* registry)
 {
     object_t ball_1 = 
     {
-        .position = {.x = 3, .y = pixels_to_meter(SCREEN_SIZE_X/2)},
-        .velocity = {.x = -100000, .y = 0},
-        .acceleration = {.x = 0, .y = 0},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 100},
+        .velocity = {.x = 0, .y = 0},
+        .acceleration = {.x = 0, .y = GRAVITATIONAL_CONSTATNT_MPS},
         .mass = 100,
         .size = 1,
         .color = {.a = 255, .r = 255, .g = 0, .b = 0},
@@ -29,8 +29,8 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_2 =
     {
-        .position = {.x = 2, .y = pixels_to_meter(SCREEN_SIZE_X/2)},
-        .velocity = {.x = 0, .y = 0},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 50},
+        .velocity = {.x = 0, .y = -100},
         .acceleration = {.x = 0, .y = 0},
         .mass = 10,
         .size = 1,
@@ -40,7 +40,7 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_3 =
     {
-        .position = {.x = 1, .y = pixels_to_meter(SCREEN_SIZE_X/2)},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 25},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
         .mass = 1,
@@ -52,7 +52,7 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_4 =
     {
-        .position = {.x = 0.5, .y = pixels_to_meter(SCREEN_SIZE_X/2)},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 101},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
         .mass = INFINITY,
@@ -63,7 +63,7 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_5 =
     {
-        .position = {.x = 100, .y = pixels_to_meter(SCREEN_SIZE_X/2)},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 10},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
         .mass = INFINITY,
@@ -72,7 +72,7 @@ void create_default_objects(registry_t* registry)
         .name = "Border_right",
     };
 
-    create_object(registry, &ball_1);
+    // create_object(registry, &ball_1);
     create_object(registry, &ball_2);
     create_object(registry, &ball_3);
     create_object(registry, &ball_4);

@@ -19,71 +19,71 @@ void advance_object(object_t* obj, double time)
     obj->velocity.y += get_velocity(obj->acceleration.y, time);
 }
 
-int check_collisions(registry_t* registry, object_t* obj_to_check, int object_index, double* ret_time_to_hit, object_t** ret_obj_to_hit, double time)
+int check_collisions(registry_t* snapshot, object_t* obj_to_check, int object_index, double* ret_time_to_hit, object_t** ret_obj_to_hit, double time)
 {
-    double time_until_collision_x = 0;
-    double time_until_collision_y = 0;
-
-    // #ifdef ENABLE_LOGGING
-    // int num_hits = 0;
-    // #endif
+    double time_until_collision_x = 0; // Time to collision on x axis
+    double time_until_collision_y = 0; // Time to collision on y axis
 
     double time_to_hit = NAN; // Smallest time to collision
     
     object_t* first_obj_to_hit = NULL; // Object to be hit first
-    unsigned int obj_to_hit_index = 0;
+    object_t* reference_obj = get_object(snapshot, object_index);
 
-    for (unsigned int n = object_index + 1; n < object_index + registry->num_members; n++)
+    unsigned int obj_to_hit_index = 0; // Index of first_obj_to_hit to be used to apply changes to real object
+
+    for (unsigned int n = object_index + 1; n < object_index + snapshot->num_members; n++)
     { // Check the collision between current object and the rest
         
-        object_t* obj_to_hit = get_object(registry, n % (registry->num_members));
-        obj_to_hit_index = n % (registry->num_members);
+        object_t* obj_to_hit = get_object(snapshot, n % (snapshot->num_members)); // Object to check collision against
 
-        if (obj_to_check->last_hit != obj_to_hit)
+        if (reference_obj->last_hit != obj_to_hit)
         { // If the two objects didn't collide on the previous tick, check their collision (this is done to prevent two collisions cancelling each other out)
         
             check_path_collision(obj_to_check, obj_to_hit, &time_until_collision_x, &time_until_collision_y); // Get time for collision on both axis
 
-            if(time_until_collision_x > 0 &&
-                fabs(((fabs(time_until_collision_x) == NAN) ? time_until_collision_x : 0) - ((fabs(time_until_collision_y) == NAN) ? time_until_collision_y : 0)) <= COLLISION_EPSILON &&
-                time_until_collision_x <= time)
+            if((time_until_collision_x >= 0 && time_until_collision_y >= 0) && (time_until_collision_x != NAN && time_until_collision_y != NAN) &&
+               (time_until_collision_x <= time && time_until_collision_y <= time))
             { // Check if collision accurs on both axis and determin which objects will hit first           
-
+                printf("%d, %f, %f \n", time_until_collision_x != NAN && time_until_collision_y != NAN, time_until_collision_x, time_until_collision_y);
+                /*Save the first object to be hit*/
                 if (first_obj_to_hit == NULL)
                 {
-                    time_to_hit = time_until_collision_x;
+                    time_to_hit = (time_until_collision_x > time_until_collision_y) ? time_until_collision_x : time_until_collision_y;
                     first_obj_to_hit = obj_to_hit;
+                    obj_to_hit_index = n % (snapshot->num_members);
                 }
                 
-                else if (time_until_collision_x < time_to_hit)
+                else if (time_until_collision_x < time_to_hit || time_until_collision_y < time_to_hit)
                 {
-                    time_to_hit = time_until_collision_x;
+                    time_to_hit = (time_until_collision_x > time_until_collision_y) ? time_until_collision_x : time_until_collision_y;
                     first_obj_to_hit = obj_to_hit;
+                    obj_to_hit_index = n % (snapshot->num_members);
                 }
             }
         }
 
         else
         {
-            obj_to_check->last_hit = NULL;
+            // reference_obj->last_hit = NULL;
             obj_to_hit->last_hit = NULL;
         }
     }
 
-    // if (first_obj_to_hit != NULL)
-    // {
-    //     #ifdef ENABLE_LOGGING
-    //     extern FILE* file;
-    //     extern double current_time;
-    //     char dump1[128];
-    //     char dump2[128];
-    //     dump_obj_info(obj_to_check, dump1, 128);
-    //     dump_obj_info(first_obj_to_hit, dump2, 128);
-    //     fprintf(file, "%lf: %s HIT %s!\nt %lf, tx %lf, ty %lf\n%s\n%s\n\n", current_time, obj_to_check->name, first_obj_to_hit->name, time, time_until_collision_x, time_until_collision_y, dump1, dump2);
-    //     #endif
-    //     obj_to_check->last_hit = first_obj_to_hit;
-    //     first_obj_to_hit->last_hit = obj_to_check;
-    // }
+    if (first_obj_to_hit != NULL)
+    {
+        #ifdef ENABLE_LOGGING
+        extern FILE* file;
+        extern double current_time;
+        char dump1[128];
+        char dump2[128];
+        dump_obj_info(obj_to_check, dump1, 128);
+        dump_obj_info(first_obj_to_hit, dump2, 128);
+        fprintf(file, "%lf: %s HIT %s!\nt %lf, tx %lf, ty %lf\n%s\n%s\n\n", current_time, obj_to_check->name, first_obj_to_hit->name, time, time_until_collision_x, time_until_collision_y, dump1, dump2);
+        #endif
+
+        reference_obj->last_hit = first_obj_to_hit;
+        first_obj_to_hit->last_hit = reference_obj;
+    }
     
     *ret_obj_to_hit = first_obj_to_hit;
     *ret_time_to_hit = time_to_hit;
@@ -92,6 +92,8 @@ int check_collisions(registry_t* registry, object_t* obj_to_check, int object_in
 
 static inline void calculate_collision(object_t* obj1, object_t* obj2)
 {
+    /*Calculate the new object parameters after a collision has occured*/
+
     double temp_vel_x = obj1->velocity.x;
     double temp_vel_y = obj1->velocity.y;
 
@@ -106,7 +108,6 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
 {
     for (unsigned int i = 0; i < registry->num_members; i++)
     {
-        object_t* current_obj = get_object(snapshot, i % snapshot->num_members); // Object to check against the rest
         unsigned int current_obj_index = i % registry->num_members;
 
         double time_to_hit = 0; // Smallest time to collision
@@ -114,17 +115,16 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
         double sub_tick_time = time; // This time will be used to calculate the new positions of objects which collide multiple times in a tick
 
         object_t* obj_to_hit = NULL; // Object to be hit first
-        object_t* last_object_hit = NULL;
         unsigned int obj_to_hit_index;
-
-        obj_to_hit_index = check_collisions(snapshot, current_obj, i, &time_to_hit, &obj_to_hit, time);
+        
+        obj_to_hit_index = check_collisions(snapshot, get_object(registry, current_obj_index), i, &time_to_hit, &obj_to_hit, sub_tick_time);
 
         while (obj_to_hit != NULL)
         {
-            last_object_hit = obj_to_hit;
             current_obj_index = i % registry->num_members;
-
+            
             advance_object(get_object(registry, current_obj_index), time_to_hit);
+
             calculate_collision(get_object(registry, current_obj_index), get_object(registry, obj_to_hit_index));
 
             sub_tick_time -= time_to_hit; // Time remaining in the current tick
@@ -132,10 +132,23 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
             obj_to_hit_index = check_collisions(snapshot, get_object(registry, current_obj_index), i, &time_to_hit, &obj_to_hit, sub_tick_time);
         }
         
-        if (obj_to_hit == NULL)
-        {
-            if (last_object_hit != NULL)
-            {
+        advance_object(get_object(registry, current_obj_index), sub_tick_time);
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
                 // #ifdef ENABLE_LOGGING
                 // double collision_x;
                 // double collision_y;
@@ -144,10 +157,7 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
                 // position_t temp_current_obj_pos = current_obj->position;
                 // position_t position_delta_before = {.x = temp_current_obj_pos.x - last_object_hit->position.x, .y = temp_current_obj_pos.y - last_object_hit->position.y};
                 // #endif
-                
-                advance_object(get_object(registry, current_obj_index), sub_tick_time);
-                
-                // #ifdef ENABLE_LOGGING
+                                // #ifdef ENABLE_LOGGING
                 // temp_current_obj_pos = current_obj->position;
                 // position_t position_delta_after = {.x = temp_current_obj_pos.x - last_object_hit->position.x, .y = temp_current_obj_pos.y - last_object_hit->position.y};
                 // extern FILE* file;
@@ -168,15 +178,6 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
                 // //     current_obj->name, last_object_hit->name, current_time, time, collision_x, collision_y, current_obj->velocity.x, current_obj->position.x,);
                 // // }
                 // #endif
-
-                last_object_hit = NULL;
-            }
-
-            else
-            {
-                advance_object(get_object(registry, current_obj_index), sub_tick_time);
-            }
-        }
             // #ifdef ENABLE_LOGGING
             // if (current_obj->position.x <  0.5 || current_obj->position.x > 3.5)
             // {
@@ -184,5 +185,3 @@ void run_iteration(registry_t* registry, registry_t* snapshot, double time)
             //     fprintf(file, "BAD! %lf\n", current_obj->position.x);
             // }
             // #endif
-    }
-}
