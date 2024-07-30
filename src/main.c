@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+
 #include "pthread.h"
 #include "semaphore.h"
-#include "raylib.h"
 
 #include "engine.h"
+#include "graphics.h"
 
 #ifdef ENABLE_LOGGING
 FILE* file;
@@ -16,35 +17,37 @@ double current_time = 0;
 
 void create_default_objects(registry_t* registry)
 {
-    object_t ball_1 = 
-    {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 100},
-        .velocity = {.x = 0, .y = 0},
-        .acceleration = {.x = 0, .y = GRAVITATIONAL_CONSTATNT_MPS},
-        .mass = 100,
-        .size = 1,
-        .color = {.a = 255, .r = 255, .g = 0, .b = 0},
-        .name = "Red",
-    };
+    // object_t ball_1 = 
+    // {
+    //     .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 100},
+    //     .velocity = {.x = 0, .y = 0},
+    //     .acceleration = {.x = 0, .y = GRAVITATIONAL_CONSTATNT_MPS},
+    //     .mass = 100,
+    //     .size = 1,
+    //     .color = {.a = 255, .r = 255, .g = 0, .b = 0},
+    //     .name = "Red",
+    // };
 
     object_t ball_2 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 50},
-        .velocity = {.x = 0, .y = -100},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER) + 20, .y = 50},
+        .velocity = {.x = -10, .y = -10},
         .acceleration = {.x = 0, .y = 0},
         .mass = 10,
         .size = 1,
+        .charge = 1,
         .color = {.a = 255, .r = 0, .g = 255, .b = 0},
         .name = "Green",
     };
 
     object_t ball_3 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 25},
-        .velocity = {.x = 0, .y = 0},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 25},
+        .velocity = {.x = 0, .y = 10},
         .acceleration = {.x = 0, .y = 0},
         .mass = 1,
         .size = 1,
+        .charge = -1e-6,
         .color = {.a = 255, .r = 0, .g = 0, .b = 255},
         .name = "Blue",
     };
@@ -52,7 +55,7 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_4 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 101},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 101},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
         .mass = INFINITY,
@@ -63,7 +66,7 @@ void create_default_objects(registry_t* registry)
 
     object_t ball_5 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 10},
+        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 10},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
         .mass = INFINITY,
@@ -109,7 +112,7 @@ void* physics_thread(void* args)
     {
         start_iteration(); // Start iteration timer
 
-        run_iteration(&main_registry, &snapshot_registry, time_delta);
+        run_iteration(&main_registry, time_delta);
 
         for (unsigned int i = 0; i < snapshot_registry.num_members; i++)
         { // Copy objects to snapshot 
@@ -120,44 +123,6 @@ void* physics_thread(void* args)
         
         time_delta = end_iteration(); // End iteration and send thread to sleep
     }
-}
-
-void* graphics_thread(void* args)
-{
-    InitWindow(SCREEN_SIZE_X, SCREEN_SIZE_Y, "Test!");
-    SetTargetFPS(60);
-    
-    thread_info* info = (thread_info*)args; // Information shared between threads
-
-    double time_delta;
-
-    sem_post(info->graphics_ready_sem); // Signal that graphics are ready
-
-    while (!WindowShouldClose())
-    {
-        time_delta = info->iteration_time;
-
-        BeginDrawing();
-
-        for (unsigned int i = 0; i < info->objects->num_members; i++)
-        {
-            object_t obj = *get_object(info->objects, i);
-            DrawCircle(meters_to_pixel(obj.position.x), SCREEN_SIZE_Y -  meters_to_pixel(obj.position.y), meters_to_pixel(obj.size), obj.color); // Draw objects
-        }
-        
-        ClearBackground(WHITE);
-
-        DrawText(TextFormat("%lf", time_delta), 10, 10, 20, BLACK);
-
-        // DrawText(TextFormat("Gravity (m/s^2): %f\n\nPosition (m)\nX: %f\nY: %f\n\nVelocity (m/s)\nX: %f\nY: %f",
-        // (double)GRAVITATIONAL_CONSTATNT_MPS, ball.position.x, ball.position.y, ball.velocity.x, ball.velocity.y), 10, 10, 16, BLACK); // Display all the ball's physical values
-
-        EndDrawing();
-    }
-
-    CloseWindow();
-    info->program_closed = true;
-    pthread_exit(NULL);
 }
 
 int main()

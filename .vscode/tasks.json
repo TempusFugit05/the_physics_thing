@@ -11,11 +11,13 @@
           "-I${workspaceFolder}/src/includes",
           "-g",
           "${workspaceFolder}/src/main.c",
+          "${workspaceFolder}/src/graphics.c",
           "${workspaceFolder}/src/includes/physics/src/equations.c",
           "${workspaceFolder}/src/includes/physics/src/collision.c",
           "${workspaceFolder}/src/includes/physics/src/simulation.c",
           "${workspaceFolder}/src/includes/utils/util_functions.c",
           "${workspaceFolder}/src/includes/utils/object_manager.c",
+          
           "-o",
           "${workspaceFolder}/main",
           "-lraylib",

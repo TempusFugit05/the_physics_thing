@@ -4,13 +4,13 @@
 #include "raylib.h"
 #include <semaphore.h>
 
-typedef enum
-{
-    DEFAULT,
-    GRAPHICS_READY,
-    MOUSE_LOCK,
-    EXIT,
-} sim_states_t;
+// typedef enum
+// {
+//     DEFAULT,
+//     GRAPHICS_READY,
+//     MOUSE_LOCK,
+//     EXIT,
+// } sim_states_t;
 
 typedef struct
 {
@@ -45,6 +45,7 @@ typedef struct object_t
     double mass;
     double size;
     Color color;
+    double charge;
     char name[32];
     struct object_t* last_hit;
 } object_t;
@@ -69,5 +70,7 @@ typedef struct
     bool program_closed;
     sem_t* graphics_ready_sem;
 } thread_info;
+
+#define CONSTANT_K 8.999e9 // m^2/C^2
 
 #endif // TYPES_H

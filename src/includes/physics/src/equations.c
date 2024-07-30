@@ -1,4 +1,5 @@
 #include "../include/equations.h"
+#include "../include/types.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,7 +71,7 @@ inline double get_second_law_acceleration(const double force, const double mass)
         return 0;
     }
     
-    return mass / force;
+    return force / mass;
 }
 
 inline double get_collision_speed(const double vel_1, const double mass_1, const double vel_2, const double mass_2)
@@ -92,4 +93,16 @@ inline double get_collision_speed(const double vel_1, const double mass_1, const
 inline double get_potential_energy(const double height, const double mass, const double gravity)
 {
     return height * mass * fabs(gravity);
+}
+
+inline double get_distance(const position_t pos_1, const position_t pos_2)
+{
+    double delta_x = pos_1.x - pos_2.x;
+    double delta_y = pos_1.y - pos_2.y;
+    return sqrt(delta_x*delta_x + delta_y*delta_y);
+}
+
+inline double get_electric_force(const double charge_1, const double charge_2, const double distance)
+{
+    return (CONSTANT_K * charge_1 * charge_2) / (distance * distance);
 }

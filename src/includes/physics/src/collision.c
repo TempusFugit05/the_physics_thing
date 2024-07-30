@@ -23,43 +23,26 @@ void check_path_collision(const object_t* obj_1, const object_t* obj_2, double* 
     double collision_x = 0;
     double collision_y = 0;
     
-    if (obj_1->velocity.x != obj_2->velocity.x)
+    if (obj_1->acceleration.x == obj_2->acceleration.x)
     {
-        if (obj_1->acceleration.x == obj_2->acceleration.x)
-        {
-            collision_x = velocity_collision(obj_1->position.x, obj_1->velocity.x, obj_2->position.x, obj_2->velocity.x);
-        }
-        
-        else
-        {
-            collision_x = acceleration_collision(obj_1->position.x, obj_1->velocity.x, obj_1->acceleration.x, obj_2->position.x, obj_2->velocity.x, obj_2->acceleration.x);
-        }
-    }
-
-    else if (obj_1->position.x != obj_2->position.x)
-    {
-        collision_x = NAN;
+        collision_x = velocity_collision(obj_1->position.x, obj_1->velocity.x, obj_2->position.x, obj_2->velocity.x);
     }
     
-
-    if (obj_1->velocity.y != obj_2->velocity.y)
+    else
     {
-        if (obj_1->acceleration.y == obj_2->acceleration.y)
-        {
-            collision_y = velocity_collision(obj_1->position.y, obj_1->velocity.y, obj_2->position.y, obj_2->velocity.y);
-        }
-        
-        else
-        {
-            collision_y = acceleration_collision(obj_1->position.y, obj_1->velocity.y, obj_1->acceleration.y, obj_2->position.y, obj_2->velocity.y, obj_2->acceleration.y);
-        }
+        collision_x = acceleration_collision(obj_1->position.x, obj_1->velocity.x, obj_1->acceleration.x, obj_2->position.x, obj_2->velocity.x, obj_2->acceleration.x);
     }
     
-    else if (obj_1->position.y != obj_2->position.y)
+    if (obj_1->acceleration.y == obj_2->acceleration.y)
     {
-        collision_y = NAN;
+        collision_y = velocity_collision(obj_1->position.y, obj_1->velocity.y, obj_2->position.y, obj_2->velocity.y);
     }
-
+    
+    else
+    {
+        collision_y = acceleration_collision(obj_1->position.y, obj_1->velocity.y, obj_1->acceleration.y, obj_2->position.y, obj_2->velocity.y, obj_2->acceleration.y);
+    }
+    
     *ret_collision_x = collision_x;
     *ret_collision_y = collision_y;
 }

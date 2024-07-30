@@ -1,8 +1,9 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#define PIXELS_PER_METER 10
-#define ITERATIONS_PER_SECOND 1000
+#define PIXELS_PER_METER 5
+
+#define ITERATIONS_PER_SECOND 10000
 #define TIME_FACTOR 1
 #define MINIMUM_SLEEP_TIME 5 // Minimum time to sleep allowed in micro seconds
 

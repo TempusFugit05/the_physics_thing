@@ -15,14 +15,14 @@ void dump_obj_info(const object_t* obj, char* string, const unsigned int string_
     snprintf(string, string_size, "%s: ax %lf, ay %lf, vx %lf, vy %lf, px %lf, py %lf", obj->name, obj->acceleration.x, obj->acceleration.y, obj->velocity.x, obj->velocity.y, obj->position.x, obj->position.y);
 } 
 
-inline int meters_to_pixel(const double meters)
+inline int meters_to_pixel(const double meters, const double pixels_per_meter)
 {
-    return (int)round(meters*PIXELS_PER_METER);
+    return (int)round(meters*pixels_per_meter);
 }
 
-inline double pixels_to_meter(const int pixels)
+inline double pixels_to_meter(const int pixels, const double pixels_per_meter)
 {
-    return (double)pixels/PIXELS_PER_METER;
+    return (double)pixels/pixels_per_meter;
 }
 
 static struct timespec start_time, end_time; // Times at the start and end of the current iteration to calculate how much time it took to complete
@@ -45,26 +45,5 @@ inline double end_iteration()
 
     usleep(time_to_sleep);
 
-    // printf("%ld, %f\n", time_to_sleep, (((double)(end.tv_nsec - start.tv_nsec) / (double)1000000) + ((start.tv_sec < end.tv_sec) ? 1000 : 0)) * (double)TIME_FACTOR*(double)TIME_FACTOR);
-
     return (double)1 / (double)ITERATIONS_PER_SECOND; // Time the program slept for, converted from microseconds to seconds
 }
-
-/*
-    clock_gettime(CLOCK_REALTIME, &end_time); // Stop timer
-
-    time_t interation_time = (end_time.tv_nsec - start_time.tv_nsec + ((start_time.tv_sec < end_time.tv_sec) ? 1000 : 0)); // Get the time delta between the beginning and end of iteration
-    static time_t base_tick_time = (1000000 / (ITERATIONS_PER_SECOND * TIME_FACTOR)); // Target time for iteration
-    
-    time_t time_to_sleep = (base_tick_time);
-
-    struct timespec start, end;
-    clock_gettime(CLOCK_REALTIME, &start);
-    usleep(time_to_sleep);
-    clock_gettime(CLOCK_REALTIME, &end);
-
-    // printf("%ld, %f\n", time_to_sleep, (((double)(end.tv_nsec - start.tv_nsec) / (double)1000000) + ((start.tv_sec < end.tv_sec) ? 1000 : 0)) * (double)TIME_FACTOR*(double)TIME_FACTOR);
-
-    return ((((double)(end.tv_nsec - start.tv_nsec) / (double)1000000) + ((start.tv_sec < end.tv_sec) ? 1000 : 0)) * (double)TIME_FACTOR * (double)TIME_FACTOR) / 1000; // Time the program slept for, converted from microseconds to seconds
-
-*/

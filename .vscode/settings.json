@@ -17,6 +17,7 @@
         "typeinfo": "c",
         "string.h": "c",
         "unistd.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "raymath.h": "c"
     }
 }
