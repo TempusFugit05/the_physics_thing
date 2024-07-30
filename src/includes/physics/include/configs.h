@@ -1,10 +1,12 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#define PIXELS_PER_METER 5
+#define ITERATIONS_PER_SECOND 1000
+#define DEFAULT_SIMULATION_SPEED 0.001
 
-#define ITERATIONS_PER_SECOND 10000
-#define TIME_FACTOR 1
+#define MIN_SIMULATION_SPEED 0.001
+#define MAX_SIMULATION_SPEED 5
+
 #define MINIMUM_SLEEP_TIME 5 // Minimum time to sleep allowed in micro seconds
 
 #define SCREEN_SIZE_X 1920

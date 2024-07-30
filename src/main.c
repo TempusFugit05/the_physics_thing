@@ -17,69 +17,37 @@ double current_time = 0;
 
 void create_default_objects(registry_t* registry)
 {
-    // object_t ball_1 = 
-    // {
-    //     .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2), .y = 100},
-    //     .velocity = {.x = 0, .y = 0},
-    //     .acceleration = {.x = 0, .y = GRAVITATIONAL_CONSTATNT_MPS},
-    //     .mass = 100,
-    //     .size = 1,
-    //     .color = {.a = 255, .r = 255, .g = 0, .b = 0},
-    //     .name = "Red",
-    // };
-
     object_t ball_2 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER) + 20, .y = 50},
-        .velocity = {.x = -10, .y = -10},
+        .position = {.x = 100, .y = 0},
+        .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
-        .mass = 10,
-        .size = 1,
+        .mass = 100000,
+        .size = 5,
         .charge = 1,
-        .color = {.a = 255, .r = 0, .g = 255, .b = 0},
+        .color = {.a = 255, .r = 255, .g = 0, .b = 0},
         .name = "Green",
     };
 
     object_t ball_3 =
     {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 25},
-        .velocity = {.x = 0, .y = 10},
+        .position = {.x = 100, .y = 500},
+        .velocity = {.x = 50, .y = 0},
         .acceleration = {.x = 0, .y = 0},
-        .mass = 1,
-        .size = 1,
-        .charge = -1e-6,
+        .mass = 10000,
+        .size = 4,
+        .charge = -1,
         .color = {.a = 255, .r = 0, .g = 0, .b = 255},
         .name = "Blue",
-    };
-
-
-    object_t ball_4 =
-    {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 101},
-        .velocity = {.x = 0, .y = 0},
-        .acceleration = {.x = 0, .y = 0},
-        .mass = INFINITY,
-        .size = 0.001,
-        .color = {.a = 255, .r = 255, .g = 0, .b = 255},
-        .name = "Border_left",
-    };
-
-    object_t ball_5 =
-    {
-        .position = {.x = pixels_to_meter(SCREEN_SIZE_X/2, PIXELS_PER_METER), .y = 10},
-        .velocity = {.x = 0, .y = 0},
-        .acceleration = {.x = 0, .y = 0},
-        .mass = INFINITY,
-        .size = 0.001,
-        .color = {.a = 255, .r = 255, .g = 0, .b = 255},
-        .name = "Border_right",
     };
 
     // create_object(registry, &ball_1);
     create_object(registry, &ball_2);
     create_object(registry, &ball_3);
-    create_object(registry, &ball_4);
-    create_object(registry, &ball_5);
+    // ball_3.position.x = 10;
+    // create_object(registry, &ball_3);
+    // create_object(registry, &ball_4);
+    // create_object(registry, &ball_5);
 
 }
 
@@ -121,7 +89,9 @@ void* physics_thread(void* args)
         
         current_time += time_delta;
         
-        time_delta = end_iteration(); // End iteration and send thread to sleep
+        info->iteration_time = current_time;
+
+        time_delta = end_iteration(info->simulation_speed); // End iteration and send thread to sleep
     }
 }
 
@@ -133,7 +103,15 @@ int main()
     sem_t graphics_ready_semaphore; // Semaphore to signify that the graphics are initialized before starting physics simulation
     sem_init(&graphics_ready_semaphore, 0, 0);
 
-    thread_info info = {.graphics_ready_sem = &graphics_ready_semaphore, .program_closed = false, .mouse_lock = false, .iteration_time = 0, .objects = NULL}; // Data to be shared with both threads
+    thread_info info = 
+    {
+        .graphics_ready_sem = &graphics_ready_semaphore,
+        .program_closed = false,
+        .mouse_lock = false,
+        .iteration_time = 0,
+        .objects = NULL,
+        .simulation_speed = DEFAULT_SIMULATION_SPEED
+    }; // Data to be shared with both threads
     
     pthread_create(&physics_thread_id, NULL, physics_thread, &info);
     pthread_create(&graphics_thread_id, NULL, graphics_thread, &info);
@@ -144,4 +122,3 @@ int main()
     
     return 1;
 }
-

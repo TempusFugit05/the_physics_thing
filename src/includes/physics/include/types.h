@@ -65,7 +65,8 @@ typedef struct
 typedef struct
 {
     registry_t* objects;
-    double iteration_time;
+    float iteration_time;
+    float simulation_speed;
     bool mouse_lock;
     bool program_closed;
     sem_t* graphics_ready_sem;

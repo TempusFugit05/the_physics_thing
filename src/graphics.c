@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include "graphics.h"
 #include "raylib.h"
 
@@ -8,38 +10,62 @@
 void* graphics_thread(void* args)
 {
     InitWindow(SCREEN_SIZE_X, SCREEN_SIZE_Y, "Test!");
+
     SetTargetFPS(60);
     
     thread_info* info = (thread_info*)args; // Information shared between threads
 
-    double time_delta;
+    position_t camera_pos = {.x = 0, .y = 0};
 
     sem_post(info->graphics_ready_sem); // Signal that graphics are ready
     
-    Rectangle slider_bounds = {.x = 10, .y = 20, .width = 100, .height = 10};
+    Rectangle slider_bounds = {.x = (SCREEN_SIZE_X - 200) / 2, .y = 20, .width = 400, .height = 10};
     
+    float pixels_per_meter = 10; // Zoom factor
+    
+    float simulation_speed = DEFAULT_SIMULATION_SPEED;
 
-    
-    GuiSlider(slider_bounds, "", "", &PIXELS_PER_METER, 1, 100);
+    int slider_value_changed = 0;
 
     while (!WindowShouldClose())
     {
-        time_delta = info->iteration_time;
-
         BeginDrawing();
+
+        ClearBackground(WHITE);
+            
+        float scroll_wheel = GetMouseWheelMove();
+
+        if (scroll_wheel < 0)
+        {
+            if (pixels_per_meter > 0)
+            {
+                pixels_per_meter /= 1.05;
+            }
+        }
+
+        else if (scroll_wheel > 0)
+        {
+            pixels_per_meter *= 1.05;
+        }
 
         for (unsigned int i = 0; i < info->objects->num_members; i++)
         {
             object_t obj = *get_object(info->objects, i);
-            DrawCircle(meters_to_pixel(obj.position.x), SCREEN_SIZE_Y -  meters_to_pixel(obj.position.y), meters_to_pixel(obj.size), obj.color); // Draw objects
+            DrawCircle(meters_to_pixel(obj.position.x, pixels_per_meter) + camera_pos.x, SCREEN_SIZE_Y -  meters_to_pixel(obj.position.y, pixels_per_meter) + camera_pos.y, meters_to_pixel(obj.size, pixels_per_meter), obj.color); // Draw objects
         }
         
-        ClearBackground(WHITE);
+        DrawText(TextFormat("%lf", info->iteration_time), 10, 10, 20, BLACK);
+        slider_value_changed = GuiSlider(slider_bounds, "-", "+", &simulation_speed, MIN_SIMULATION_SPEED, MAX_SIMULATION_SPEED);
+        info->simulation_speed = simulation_speed;
+        
+        DrawText(TextFormat("%f", simulation_speed), slider_bounds.x + 200 - (MeasureTextEx(GetFontDefault(), TextFormat("%f", simulation_speed), 10, GetFontDefault().glyphPadding).x / 2), slider_bounds.y + 10, 10, BLACK);
 
-        DrawText(TextFormat("%lf", time_delta), 10, 10, 20, BLACK);
-
-        // DrawText(TextFormat("Gravity (m/s^2): %f\n\nPosition (m)\nX: %f\nY: %f\n\nVelocity (m/s)\nX: %f\nY: %f",
-        // (double)GRAVITATIONAL_CONSTATNT_MPS, ball.position.x, ball.position.y, ball.velocity.x, ball.velocity.y), 10, 10, 16, BLACK); // Display all the ball's physical values
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && slider_value_changed == 0)
+        {
+            Vector2 mouse_delta = GetMouseDelta();
+            camera_pos.x += mouse_delta.x;
+            camera_pos.y += mouse_delta.y;
+        }
 
         EndDrawing();
     }
