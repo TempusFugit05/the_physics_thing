@@ -33,15 +33,17 @@ inline void start_iteration()
     clock_gettime(CLOCK_REALTIME, &start_time); // Start timer
 }
 
-inline double end_iteration(float simulation_speed)
+psize_t end_iteration(float simulation_speed, unsigned int iterations_per_second, unsigned int* iterations_to_run)
 {
     /*End the iteration, go to sleep for set amount of time and return the amount of time the origram slept*/
     clock_gettime(CLOCK_REALTIME, &end_time); // Stop timer
 
     time_t interation_time = (end_time.tv_nsec - start_time.tv_nsec + ((start_time.tv_sec < end_time.tv_sec) ? 1000 : 0)) / 1000000; // Get the time delta between the beginning and end of iteration
-    time_t base_tick_time = (1000000 / (ITERATIONS_PER_SECOND * simulation_speed)); // Target time for iteration
+    // time_t base_tick_time = (1000000 / (ITERATIONS_PER_SECOND * simulation_speed)); // Target time for iteration
     
-    time_t time_to_sleep = (base_tick_time - interation_time < MINIMUM_SLEEP_TIME) ? MINIMUM_SLEEP_TIME : base_tick_time - interation_time;
+    time_t time_to_sleep = (TIME_TO_SLEEP - interation_time);
+    *iterations_to_run = (time_to_sleep * iterations_per_second / 1000000) * simulation_speed;
+
     usleep(time_to_sleep);
 
     if (signbit(simulation_speed))

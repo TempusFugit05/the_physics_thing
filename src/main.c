@@ -17,35 +17,46 @@ double current_time = 0;
 
 void create_default_objects(registry_t* registry)
 {
-    object_t ball_2 =
+    object_t ball_1 =
     {
         .position = {.x = 100, .y = 0},
         .velocity = {.x = 0, .y = 0},
         .acceleration = {.x = 0, .y = 0},
-        .mass = 100000,
-        .size = 5,
+        .mass = 10000,
+        .size = 10,
         .charge = 1,
         .color = {.a = 255, .r = 255, .g = 0, .b = 0},
-        .name = "Green",
+        .name = "Red",
+        .is_target = true
     };
 
-    object_t ball_3 =
+    object_t ball_2 =
     {
         .position = {.x = 100, .y = 500},
         .velocity = {.x = 50, .y = 0},
         .acceleration = {.x = 0, .y = 0},
-        .mass = 10000,
-        .size = 4,
-        .charge = -1,
+        .mass = 10,
+        .size = 5,
+        .charge = -1e-3,
         .color = {.a = 255, .r = 0, .g = 0, .b = 255},
         .name = "Blue",
     };
 
     // create_object(registry, &ball_1);
+    create_object(registry, &ball_1);
     create_object(registry, &ball_2);
-    create_object(registry, &ball_3);
-    // ball_3.position.x = 10;
-    // create_object(registry, &ball_3);
+    ball_1.position.y = -100;
+    ball_1.position.x = 500;
+    ball_1.charge = -1;
+    ball_1.velocity.y = 25;
+    create_object(registry, &ball_1);
+    // ball_2.position.x = -50;
+    // ball_2.position.y = 40;
+    // create_object(registry, &ball_2);
+
+    // ball_2.position.x = 10;
+    // ball_2.is_target = true;
+    // create_object(registry, &ball_2);
     // create_object(registry, &ball_4);
     // create_object(registry, &ball_5);
 
@@ -63,7 +74,9 @@ void* physics_thread(void* args)
 
     info->objects = &main_registry; // Send registry to graphics thread
 
-    double time_delta;
+    double time_delta = 0;
+
+    unsigned int iter_to_perform = 0;
 
     sem_wait(info->graphics_ready_sem); // Wait for graphics to finish initializing
 
@@ -76,23 +89,36 @@ void* physics_thread(void* args)
     }
     #endif
 
-    while(1)
+    while(!info->program_closed)
     {
         start_iteration(); // Start iteration timer
 
-        run_iteration(&main_registry, time_delta);
+        for (unsigned int i = 0; i < iter_to_perform; i++)
+        {
+            if (info->is_paused)
+            {
+                break;
+            }
+            
+            run_iteration(&main_registry, time_delta);
 
-        for (unsigned int i = 0; i < snapshot_registry.num_members; i++)
-        { // Copy objects to snapshot 
-            *get_object(&snapshot_registry, i) = *get_object(&main_registry, i);
+            if (sem_post(info->request_objects_sem) == 0)
+            {
+                for (unsigned int i = 0; i < snapshot_registry.num_members; i++)
+                { // Copy objects to snapshot 
+                    *get_object(&snapshot_registry, i) = *get_object(&main_registry, i);
+                }        
+            }
+            
+            current_time += time_delta;
+            
+            info->simulation_time = current_time;
+            info->iteration_num += 1;
         }
-        
-        current_time += time_delta;
-        
-        info->iteration_time = current_time;
-
-        time_delta = end_iteration(info->simulation_speed); // End iteration and send thread to sleep
+        time_delta = end_iteration(info->simulation_speed, ITERATIONS_PER_SECOND, &iter_to_perform); // End iteration and send thread to sleep
     }
+
+    pthread_exit(NULL);
 }
 
 int main()
@@ -103,12 +129,15 @@ int main()
     sem_t graphics_ready_semaphore; // Semaphore to signify that the graphics are initialized before starting physics simulation
     sem_init(&graphics_ready_semaphore, 0, 0);
 
+    sem_t request_objects_sem;
+    sem_init(&request_objects_sem, 0, 0);
+
     thread_info info = 
     {
         .graphics_ready_sem = &graphics_ready_semaphore,
+        .request_objects_sem = &request_objects_sem,
         .program_closed = false,
-        .mouse_lock = false,
-        .iteration_time = 0,
+        .simulation_time = 0,
         .objects = NULL,
         .simulation_speed = DEFAULT_SIMULATION_SPEED
     }; // Data to be shared with both threads
@@ -117,8 +146,6 @@ int main()
     pthread_create(&graphics_thread_id, NULL, graphics_thread, &info);
 
     while (!info.program_closed){}
-    
-    pthread_cancel(physics_thread_id); // Kill physics thread
-    
+
     return 1;
 }

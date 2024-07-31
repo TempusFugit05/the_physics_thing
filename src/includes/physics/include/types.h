@@ -3,51 +3,26 @@
 
 #include "raylib.h"
 #include <semaphore.h>
-
-// typedef enum
-// {
-//     DEFAULT,
-//     GRAPHICS_READY,
-//     MOUSE_LOCK,
-//     EXIT,
-// } sim_states_t;
+#include "configs.h"
 
 typedef struct
 {
-    double x;
-    double y;
-} position_t;
-
-typedef struct
-{
-    double x;
-    double y;
-} velocity_t;
-
-typedef struct
-{
-    double x;
-    double y;
-} acceleration_t;
-
-typedef struct
-{
-    double x;
-    double y;
-} force_t;
+    psize_t x;
+    psize_t y;
+} vector_2;
 
 typedef struct object_t
 {
-    position_t position;
-    velocity_t velocity;
-    acceleration_t acceleration;
-    force_t force;
-    double mass;
-    double size;
+    vector_2 position;
+    vector_2 velocity;
+    vector_2 acceleration;
+    vector_2 force;
+    psize_t mass;
+    psize_t size;
     Color color;
-    double charge;
+    psize_t charge;
     char name[32];
-    struct object_t* last_hit;
+    volatile bool is_target;
 } object_t;
 
 typedef struct member_t
@@ -65,11 +40,16 @@ typedef struct
 typedef struct
 {
     registry_t* objects;
-    float iteration_time;
-    float simulation_speed;
-    bool mouse_lock;
-    bool program_closed;
+    
+    volatile float simulation_time;
+    volatile unsigned long int iteration_num;
+    volatile float simulation_speed;
+
+    volatile bool program_closed;
+    volatile bool is_paused;
+
     sem_t* graphics_ready_sem;
+    sem_t* request_objects_sem;
 } thread_info;
 
 #define CONSTANT_K 8.999e9 // m^2/C^2

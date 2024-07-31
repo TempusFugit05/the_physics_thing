@@ -1,13 +1,13 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-#define ITERATIONS_PER_SECOND 1000
-#define DEFAULT_SIMULATION_SPEED 0.001
+#define ITERATIONS_PER_SECOND 10000
 
-#define MIN_SIMULATION_SPEED 0.001
-#define MAX_SIMULATION_SPEED 5
+#define MIN_SIMULATION_SPEED 0.01
+#define DEFAULT_SIMULATION_SPEED 1
+#define MAX_SIMULATION_SPEED 10
 
-#define MINIMUM_SLEEP_TIME 5 // Minimum time to sleep allowed in micro seconds
+#define TIME_TO_SLEEP 10000
 
 #define SCREEN_SIZE_X 1920
 #define SCREEN_SIZE_Y 1080
@@ -15,6 +15,8 @@
 
 #define COLLISION_EPSILON 1e-6
 #define MINIMUM_OBJECT_DISTANCE 1e-6
-#define ENABLE_LOGGING
+// #define ENABLE_LOGGING
+
+#define psize_t double
 
 #endif // CONFIGS_H

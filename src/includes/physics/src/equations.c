@@ -6,67 +6,67 @@
 #include <math.h>
 #include <stdbool.h>
 
-inline double get_velocity(const double acceleration, const double delta_time)
+inline psize_t get_velocity(const psize_t acceleration, const psize_t delta_time)
 {
     if (acceleration != 0)
     {
-        double vel = acceleration * delta_time;
+        psize_t vel = acceleration * delta_time;
         return (isnan(vel) ? 0 : vel);
     }
 
     return 0;
 }
 
-inline double get_position(const double start_velocity, const double acceleration, const double time)
+inline psize_t get_position(const psize_t start_velocity, const psize_t acceleration, const psize_t time)
 {
     return (start_velocity * time) + ((acceleration * time * time) / 2);
 }
 
-// inline double get_position(const double velocity, const double delta_time)
+// inline psize_t get_position(const psize_t velocity, const psize_t delta_time)
 // {
 //     if (velocity != 0)
 //     {
-//         double position = velocity * delta_time;
+//         psize_t position = velocity * delta_time;
 //         return (isnan(position) ? 0 : position);
 //     }
 //     return 0;
 // }
 
-inline double get_kinetic_energy(const double velocity, const double mass)
+inline psize_t get_kinetic_energy(const psize_t velocity, const psize_t mass)
 {
     if (velocity != 0)
     {
-        double energy = mass * velocity * velocity/2;
+        psize_t energy = mass * velocity * velocity/2;
         return (isnan(energy) ? 0 : energy);
     }
     return 0;
 }
 
-inline double energy_to_velocity(const double energy, const double mass)
+inline psize_t energy_to_velocity(const psize_t energy, const psize_t mass)
 {
     if (energy != 0)
     {
-        double vel = pow(2 * energy / mass, 0.5);
+        psize_t vel = pow(2 * energy / mass, 0.5);
         return (isnan(vel) ? 0 : vel);
     }
     return 0;
 }
 
-inline double get_work(const double force, const double direction_deg, const double distance)
+inline psize_t get_work(const psize_t force, const psize_t direction_deg, const psize_t distance)
 {
-    double work = force * cos(direction_deg) * distance;
+    psize_t work = force * cos(direction_deg) * distance;
     return (isnan(work)) ? 0 : work;
 }
 
-inline double get_friction(const double normal_force, const double friction_coefficient, const bool direction_sign)
+inline psize_t get_friction(const psize_t normal_force, const psize_t friction_coefficient, const bool direction_sign)
 {
-    double force = normal_force * friction_coefficient * ((direction_sign) ? 1 : -1);
+    psize_t force = normal_force * friction_coefficient * ((direction_sign) ? 1 : -1);
     return (isnan(force)) ? 0 : force;
 }
 
-inline double get_second_law_acceleration(const double force, const double mass)
+inline psize_t get_second_law_acceleration(const psize_t force, const psize_t mass)
 {
-    if (force == 0)
+    if (force == 0 || mass == INFINITY)
     {
         return 0;
     }
@@ -74,7 +74,7 @@ inline double get_second_law_acceleration(const double force, const double mass)
     return force / mass;
 }
 
-inline double get_collision_speed(const double vel_1, const double mass_1, const double vel_2, const double mass_2)
+inline psize_t get_collision_speed(const psize_t vel_1, const psize_t mass_1, const psize_t vel_2, const psize_t mass_2)
 {
     /*Takes two objects and returns the speed of the first object after a collision has occured*/
     if (mass_1 == INFINITY)
@@ -90,19 +90,19 @@ inline double get_collision_speed(const double vel_1, const double mass_1, const
     return (((mass_1 - mass_2) / (mass_1 + mass_2)) * vel_1) + (((2 * mass_2) / (mass_1 + mass_2)) * vel_2);
 }
 
-inline double get_potential_energy(const double height, const double mass, const double gravity)
+inline psize_t get_potential_energy(const psize_t height, const psize_t mass, const psize_t gravity)
 {
     return height * mass * fabs(gravity);
 }
 
-inline double get_distance(const position_t pos_1, const position_t pos_2)
+inline psize_t get_distance(const vector_2 pos_1, const vector_2 pos_2)
 {
-    double delta_x = pos_1.x - pos_2.x;
-    double delta_y = pos_1.y - pos_2.y;
+    psize_t delta_x = pos_1.x - pos_2.x;
+    psize_t delta_y = pos_1.y - pos_2.y;
     return sqrt(delta_x*delta_x + delta_y*delta_y);
 }
 
-inline double get_electric_force(const double charge_1, const double charge_2, const double distance)
+inline psize_t get_electric_force(const psize_t charge_1, const psize_t charge_2, const psize_t distance)
 {
     return (CONSTANT_K * charge_1 * charge_2) / (distance * distance);
 }

@@ -8,6 +8,6 @@ int meters_to_pixel(const double meters, const double pixels_per_meter);
 double pixels_to_meter(int pixels, const double pixels_per_meter);
 
 void start_iteration();
-double end_iteration(float simulation_speed);
+psize_t end_iteration(float simulation_speed, unsigned int iterations_per_second, unsigned int* iterations_to_run);
 
 #endif // UTIL_FUNCTIONS_H
