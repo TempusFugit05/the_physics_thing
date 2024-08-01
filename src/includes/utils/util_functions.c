@@ -41,7 +41,7 @@ psize_t end_iteration(float simulation_speed, unsigned int iterations_per_second
     time_t interation_time = (end_time.tv_nsec - start_time.tv_nsec + ((start_time.tv_sec < end_time.tv_sec) ? 1000 : 0)) / 1000000; // Get the time delta between the beginning and end of iteration
     // time_t base_tick_time = (1000000 / (ITERATIONS_PER_SECOND * simulation_speed)); // Target time for iteration
     
-    time_t time_to_sleep = (TIME_TO_SLEEP - interation_time);
+    time_t time_to_sleep = (TIME_TO_SLEEP - interation_time > 0) ? TIME_TO_SLEEP - interation_time : 1;
     *iterations_to_run = (time_to_sleep * iterations_per_second / 1000000) * simulation_speed;
 
     usleep(time_to_sleep);

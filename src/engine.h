@@ -8,5 +8,4 @@
 #include "includes/physics/include/simulation.h"
 
 #include "includes/utils/object_manager.h"
-#include "includes/utils/util_functions.h"
 #endif // ENGINE_H

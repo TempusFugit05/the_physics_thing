@@ -18,6 +18,7 @@
         "string.h": "c",
         "unistd.h": "c",
         "cmath": "c",
-        "raymath.h": "c"
+        "raymath.h": "c",
+        "program_threads.h": "c"
     }
 }

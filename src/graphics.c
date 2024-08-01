@@ -1,11 +1,33 @@
 #include <pthread.h>
-
-#include "graphics.h"
+#include <locale.h>
 #include "raylib.h"
+
+#include "program_threads.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "../libs/raygui/raygui.h"
 #include "engine.h"
+
+void get_iteration_average(unsigned int* ret_average, unsigned int current_iteration_num)
+{
+    static unsigned int prev_iteration_num = 0;
+    static unsigned int iteration_sum = 0;
+    static float time_sum = 0;
+    static unsigned int frame_count = 0;
+
+    frame_count++;
+    time_sum += GetFrameTime();
+    iteration_sum += current_iteration_num - prev_iteration_num;
+    prev_iteration_num = current_iteration_num;
+
+
+    if (frame_count % 15 == 0)
+    {
+        *ret_average = (int)roundf((float)iteration_sum / time_sum);
+        iteration_sum = 0;
+        time_sum = 0;
+    }
+}
 
 void* graphics_thread(void* args)
 {
@@ -25,10 +47,12 @@ void* graphics_thread(void* args)
 
     Camera2D camera = {.zoom = 1};
 
-    long int prev_iteration_num = 0;
+    unsigned int iter_per_second = 0;
 
     while (!WindowShouldClose())
     {
+        get_iteration_average(&iter_per_second, info->iteration_num);        
+
         sem_trywait(info->request_objects_sem); // Request objects
 
         if (IsKeyPressed(KEY_SPACE))
@@ -36,11 +60,14 @@ void* graphics_thread(void* args)
             info->is_paused = !info->is_paused;
         }
         
-
         /*Camera zoom*/
         float scroll_wheel = GetMouseWheelMove();
         if (scroll_wheel != 0)
-        {        
+        {
+            Vector2 mouse_world_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+            camera.offset = GetMousePosition();
+            camera.target = mouse_world_pos;
+
             if (scroll_wheel < 0)
             {
                 camera.zoom /= 1.05;
@@ -91,19 +118,15 @@ void* graphics_thread(void* args)
             GuiDrawIcon(ICON_PLAYER_PLAY, GetScreenWidth() - 40, 10, 1, BLACK);
         }
         
-
-
-        DrawText(TextFormat("%lf", info->simulation_time), 10, 10, 20, BLACK);
         slider_value_changed = GuiSlider(slider_bounds, "-", "+", &simulation_speed, MIN_SIMULATION_SPEED, MAX_SIMULATION_SPEED);
         info->simulation_speed = simulation_speed;
-        
+
+        DrawText(TextFormat("%d:%d:%d:%d", (int)(info->simulation_time / (60 * 24)) % 60, (int)(info->simulation_time / 60) % 60, (int)(info->simulation_time) % 60, (int)(info->simulation_time * 1000) % 1000), 10, 10, 20, BLACK);
         DrawText(TextFormat("Speed: %4.2fX", simulation_speed), slider_bounds.x + 200 - (MeasureTextEx(GetFontDefault(), TextFormat("%f", simulation_speed), 10, GetFontDefault().glyphPadding).x / 2), slider_bounds.y + 10, 10, BLACK);
-        DrawText(TextFormat("Iterations per second: %d", (int)((info->iteration_num - prev_iteration_num) / GetFrameTime())), 10, 40, 20, BLACK);
-        prev_iteration_num = info->iteration_num;
+        setlocale(LC_NUMERIC, "");
+        DrawText(TextFormat("Iterations per second: %'d", iter_per_second) , 10, 40, 20, BLACK);
 
         EndDrawing();
-
-
     }
 
     /*Deinit graphics thread*/

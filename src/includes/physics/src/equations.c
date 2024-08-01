@@ -8,29 +8,25 @@
 
 inline psize_t get_velocity(const psize_t acceleration, const psize_t delta_time)
 {
-    if (acceleration != 0)
+    if (acceleration == 0)
     {
-        psize_t vel = acceleration * delta_time;
-        return (isnan(vel) ? 0 : vel);
+        return 0;
     }
+    
+    psize_t vel = acceleration * delta_time;
+    return (isnan(vel) ? 0 : vel);
 
-    return 0;
 }
 
 inline psize_t get_position(const psize_t start_velocity, const psize_t acceleration, const psize_t time)
 {
+    if (acceleration == 0 && start_velocity == 0)
+    {
+        return 0;
+    }
+    
     return (start_velocity * time) + ((acceleration * time * time) / 2);
 }
-
-// inline psize_t get_position(const psize_t velocity, const psize_t delta_time)
-// {
-//     if (velocity != 0)
-//     {
-//         psize_t position = velocity * delta_time;
-//         return (isnan(position) ? 0 : position);
-//     }
-//     return 0;
-// }
 
 inline psize_t get_kinetic_energy(const psize_t velocity, const psize_t mass)
 {
